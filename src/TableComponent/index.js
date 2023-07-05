@@ -444,7 +444,6 @@ const TableComponent = () => {
             // enablePivot: true,
             sortable: true,
             cellDataType: false,
-            suppressAutoSize: true
             // // filter: true,
         };
     }, []);
