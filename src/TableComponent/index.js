@@ -11,13 +11,16 @@ import React, {
 } from "react";
 
 import tableData from "./data.json"
-
+LicenseManager.setLicenseKey(
+    "MY_AG_GRID_KEY"
+);
 
 
 const TableComponent = () => {
     const { data } = tableData
-    const [rowData, setRowData] = useState(data);
+    const [rowData, setRowData] = useState();
 
+    setTimeout(()=> setRowData(data), 5000);
     const [gridApi, setGridApi] = useState(null);
 
     const [selectedRows, setSelectedRows] = useState([])
@@ -28,6 +31,61 @@ const TableComponent = () => {
     };
 
     //   const [detailShow, setDetailShow] = useState(false);
+
+    const formatThousands = (value) => value.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+
+
+
+
+    const numberFormatter = (params) => {
+
+        if (params.value === null || params.value === undefined) {
+
+            return null;
+
+        }
+
+
+
+
+        if (isNaN(params.value)) {
+
+            return 'NaN';
+
+        }
+
+
+
+
+        // if we are doing 'count', then we do not show pound sign
+
+        if (params.node.group && params.column.aggFunc === 'count') {
+
+            return params.value;
+
+        }
+
+
+
+
+        let result = /*'$' +*/ formatThousands(Math.floor(Math.abs(params.value)));
+
+
+
+
+        if (params.value < 0) {
+
+            result = '(' + result + ')';
+
+        }
+
+
+
+
+        return result;
+
+    };
+
 
     const [columnDefs, setColumnDefs] = useState([
         {
@@ -82,17 +140,22 @@ const TableComponent = () => {
             headerName: "Flow Amount",
             field: "flow_amount",
             filter: true,
-            minWidth: 150,
-            comparator: (valueA, valueB) => {
-                const numericValueA = Number(valueA.replace(/,/g, ''));
-                const numericValueB = Number(valueB.replace(/,/g, ''));
-                return numericValueA - numericValueB;
-            },
+            minWidth: 180,
+            // comparator: (valueA, valueB) => {
+            //     const numericValueA = Number(valueA.replace(/,/g, ''));
+            //     const numericValueB = Number(valueB.replace(/,/g, ''));
+            //     return numericValueA - numericValueB;
+            // },
             chartDataType: "series",
+            type: 'numericColumn',
             enableValue: true,
-            cellRenderer: 'flowAmountRenderer',
-            valueGetter: (params) => params.data?.flow_amount && Number(params.data?.flow_amount)?.toLocaleString() || "",
+            valueFormatter: numberFormatter,
+            cellClassRules: {
+                currencyCell: 'typeof x == "number"',
+            },
+            // valueGetter: (params) => params.data?.flow_amount && Number(params.data?.flow_amount)?.toLocaleString() || "",
             sortable: true,
+            cellDataType: false,
             resizable: true,
         },
         {
@@ -466,6 +529,7 @@ const TableComponent = () => {
     }, []);
 
     function flowAmountRenderer(params) {
+        console.log("🚀 ~ file: index.js:472 ~ flowAmountRenderer ~ params:", params)
         const { value } = params;
 
         return (
@@ -480,12 +544,12 @@ const TableComponent = () => {
 
     const gridOptions = useMemo(() => ({
         suppressAutoSize: false,
-        suppressColumnVirtualisation: true,
+        // suppressColumnVirtualisation: true,
         groupSelectsChildren: true,
         animateRows: true,
-        components: {
-            flowAmountRenderer: flowAmountRenderer,
-        },
+        // components: {
+        //     flowAmountRenderer: flowAmountRenderer,
+        // },
         // suppressRowTransform: false,
 
     }), [])
